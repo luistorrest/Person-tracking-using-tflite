@@ -26,6 +26,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int, e
     input_dtype = input_details[0]['dtype']
     print(f"Input tensor data type: {input_dtype}")  # Should be np.uint8
 
+    # Class ID for "person" (usually 0 for COCO models)
+    PERSON_CLASS_ID = 0
+
     while cap.isOpened():
         success, image = cap.read()
         if not success:
@@ -51,9 +54,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int, e
 
         min_score = 0.3
         for i in range(len(scores)):
-            if scores[i] > min_score:
+            # Only process detections for the "person" class
+            if scores[i] > min_score and int(classes[i]) == PERSON_CLASS_ID:
                 box = boxes[i]
-                class_id = int(classes[i])
                 ymin, xmin, ymax, xmax = box
                 height, width, _ = image.shape
                 xmin = int(xmin * width)
@@ -61,7 +64,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int, e
                 ymin = int(ymin * height)
                 ymax = int(ymax * height)
                 cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                label = f'Class {class_id}, Score {scores[i]:.2f}'
+                label = f'Person, Score {scores[i]:.2f}'
                 cv2.putText(image, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1)
 
         cv2.imshow('object_detector', image)
@@ -73,7 +76,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int, e
 
 def main():
     parser = argparse.ArgumentParser(description='Run TensorFlow Lite object detection on a webcam feed.')
-    parser.add_argument('--model', type=str, required=True, help='Path to the TensorFlow Lite model file.')
+    parser.add_argument('--model', type=str, default="efficientdet-tflite-lite0-int8.tflite", required=True, help='Path to the TensorFlow Lite model file.')
     parser.add_argument('--camera_id', type=int, default=0, help='ID of the camera to use (default: 0).')
     parser.add_argument('--width', type=int, default=640, help='Width of the camera feed (default: 640).')
     parser.add_argument('--height', type=int, default=480, help='Height of the camera feed (default: 480).')
