@@ -2,9 +2,17 @@ import tensorflow as tf  # Use TensorFlow instead of tflite_runtime
 import cv2
 import numpy as np
 import argparse
+import sys
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int, enable_edgetpu: bool) -> None:
-    cap = cv2.VideoCapture(camera_id)
+
+    pipeline = f"libcamerasrc ! video/x-raw,width={width},height={height},framerate=30/1 ! videoconvert ! appsink"
+    cap = cv2.VideoCapture(pipeline,cv2.CAP_GSTREAMER)
+
+    if not cap.isOpened():
+        print(f"ERROR: Camera {camera_id} failed to open")
+        sys.exit(1)
+
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
