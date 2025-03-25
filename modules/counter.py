@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from picamera2 import Picamera2
 from collections import OrderedDict
-from scipy.spatial import 
+from scipy.spatial import distance
 import fun_gps 
 
 class CentroidTracker:
